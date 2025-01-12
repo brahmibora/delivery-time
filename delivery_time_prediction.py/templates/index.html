@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Delivery Time Prediction</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #FFFBF2;
+      font-family: 'Roboto', sans-serif;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .container {
+      margin: 0 auto;
+      max-width: 600px;
+      padding: 20px;
+      border-radius: 10px;
+      background-color: #fff;
+      box-shadow: 0 0 15px rgba(255, 99, 71, 0.7);
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      color: #FF6347;
+      text-shadow: 2px 2px 10px #FF6347;
+      margin-top: 20px;
+      font-size: 2.5rem;
+    }
+
+    .food-items {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      animation: rotateFoodItems 10s linear infinite;
+    }
+
+    .food-item {
+      width: 80px;
+      height: 80px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      animation: blink 1s infinite, revolve 10s linear infinite;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+
+    @keyframes revolve {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes rotateFoodItems {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .food-item img {
+      width: 100%;
+      height: 100%;
+    }
+
+    .form-container {
+      z-index: 1;
+    }
+
+    .form-container input, .form-container select, .form-container button {
+      padding: 12px;
+      margin: 10px;
+      font-size: 1.2rem;
+      border-radius: 5px;
+      border: 2px solid #FF6347;
+      background-color: #fff;
+      color: #FF6347;
+      width: 90%;
+      max-width: 400px;
+      box-sizing: border-box;
+      transition: 0.3s;
+    }
+
+    .form-container input,
+    .form-container select {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .form-container button {
+      width: auto;
+      margin-top: 20px;
+    }
+
+    .form-container button:hover {
+      background-color: #FF6347;
+      color: #fff;
+    }
+
+    .prediction {
+      margin-top: 20px;
+      font-size: 2rem;
+      color: #FF6347;
+      font-weight: bold;
+      display: none;
+      animation: pop 0.5s ease-in-out;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.8); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .food-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://static.vecteezy.com/system/resources/previews/002/457/610/large_2x/delivery-cute-stickers-template-set-vector.jpg');/* Relative path */
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+
+
+    /* Center the dialog box */
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="food-background"></div>
+
+  <!-- Food Items Animation -->
+  <div class="food-items">
+  
+  </div>
+
+  <div class="container">
+    <h1>Food Delivery Time Prediction</h1>
+
+    <div class="form-container">
+      <form id="predictionForm">
+        <label for="name">Your Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter your name" required>
+
+        <label for="age">Your Age</label>
+        <input type="number" id="age" name="age" placeholder="Enter your age" required min="1">
+
+        <label for="distance">Delivery Distance (km)</label>
+        <input type="number" id="distance" name="distance" placeholder="Enter distance" required min="0.1" step="0.1">
+
+        <label for="ratings">Restaurant Ratings (1-5)</label>
+        <input type="number" id="ratings" name="ratings" placeholder="Enter ratings" min="1" max="5" required>
+
+        <label for="vehicle_type">Vehicle Type</label>
+        <select id="vehicle_type" name="vehicle_type" required>
+          <option value="electric_scooter">Electric Scooter</option>
+          <option value="motorcycle">Motorcycle</option>
+          <option value="scooter">Scooter</option>
+        </select>
+
+        <button type="submit">Predict Delivery Time</button>
+      </form>
+
+      <div class="prediction" id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("predictionForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      const formData = {
+        name: document.getElementById("name").value,
+        age: document.getElementById("age").value,
+        distance: document.getElementById("distance").value,
+        ratings: document.getElementById("ratings").value,
+        vehicle_type: document.getElementById("vehicle_type").value
+      };
+
+      fetch("/predict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        const resultElement = document.getElementById("result");
+        resultElement.innerText = `Predicted Delivery Time: ${data.delivery_time} minutes`;
+        resultElement.style.display = "block";
+        resultElement.style.animation = "pop 0.5s ease-in-out";
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("result").innerText = "Error: Something went wrong.";
+      });
+    });
+    
+  </script>
+</body>
+</html>
